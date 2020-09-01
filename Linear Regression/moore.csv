@@ -98,5 +98,5 @@ Duo-core + GPU Iris Core i7 Broadwell-U	1,900,000,000[27]	2015	Intel	14 nm	133 m
 IBM z13	3,990,000,000	2015	IBM	22 nm	678 mm²
 IBM z13 Storage Controller	7,100,000,000	2015	IBM	22 nm	678 mm²
 Quad-core + GPU GT2 Core i7 Skylake K	cca 1,750,000,000	2015	Intel	14 nm	122 mm²
-SPARC M7	10,000,000,000[37]	2015	Oracle	20 nm	
+SPARC M7	10,000,000,000[37]	2015	Oracle	20 nm
 22-core Xeon Broadwell-E5	~7,200,000,000[36]	2016	Intel	14 nm	456 mm²
