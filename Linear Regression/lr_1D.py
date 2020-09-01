@@ -40,4 +40,4 @@ plt.show()
 
 print(f'a = {a}')
 print(f'b = {b}')
-print(f'R^2 = {R2}')
+print(f'R² = {R2}')
