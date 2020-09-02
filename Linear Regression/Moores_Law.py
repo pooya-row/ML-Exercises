@@ -42,3 +42,12 @@ plt.show()
 print(f'a = {a}')
 print(f'b = {b}')
 print(f'R² = {R2}')
+
+# log(tc) = a.year + b
+# tc = 10^(a.year + b) = 10^(a.year) * 10^b
+# doubling the transistors: 2 * tc = 10^(log(2)) * 10^(a.year) * 10^b = 10^(a.year+ log(2)) * 10^b
+# left side = tc2 = 10^(a.year2) * 10^b
+# therefore: 10^(a.year2) * 10^b = 10^(a.year1 + log(2)) * 10^b
+# year2 = year1 + log(2)/a
+
+print(f'Transistors double every {np.log(2)/a} years!')
