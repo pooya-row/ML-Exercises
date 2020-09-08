@@ -17,7 +17,7 @@ Y_hat = X.dot(w)
 # calculate R-squared using its definition in simple lin. reg.
 d1 = (Y - Y.mean()).dot(Y - Y.mean())
 d2 = (Y - Y_hat).dot(Y - Y_hat)
-print(f'R² = {1 - d2 / d1} without regularization')
+print(f'Without regularization R² = {round(1 - d2 / d1, 5)}')
 
 # plot data
 plt.scatter(X[:, 0], Y, label='data', c='black')
@@ -35,7 +35,7 @@ for l2 in range(0, 5100, 500):
 
     # calculate R-squared for each value of lambda
     d2 = (Y - Y_hat_l2).dot(Y - Y_hat_l2)
-    print(f'For λ = {l2}, R² = {1 - d2 / d1}')
+    print(f'For λ = {l2},\tR² = {round(1 - d2 / d1, 5)}')
 
     # plot data
     plt.plot(X[:, 0], Y_hat_l2, label=f'L2 = {l2}')
