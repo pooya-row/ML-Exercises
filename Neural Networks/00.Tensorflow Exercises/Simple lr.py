@@ -11,7 +11,7 @@ No high level API is used here.
 class MyModel(tf.Module):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Initialize the weight and bias
+        # randomly initialize the weight and bias
         self.w = tf.Variable(tf.random.normal([1]))
         self.b = tf.Variable(tf.random.normal([1]))
 
