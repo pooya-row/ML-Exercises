@@ -4,7 +4,9 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import time
+from datetime import datetime
 
 
 # scale the data
@@ -72,7 +74,7 @@ def compile_model(mdl):
 
 
 # train the model
-def train_model(mdl, images, labels, num_e):
+def train_model(mdl, images, labels, num_e, batch_size, call_backs):
     '''
     This function trains the model for num_e epochs on the scaled_train_images and train_labels
     and returns the training history, as returned by model.fit.
@@ -81,9 +83,15 @@ def train_model(mdl, images, labels, num_e):
     :param images: numpy.ndarray (n_train, pixel, pixel, channel=1)
     :param labels: numpy.ndarray (n_train,1)
     :param num_e: int number of epochs
+    :param batch_size: int, size of mini batches
+    :param call_backs: list of callbacks for model saving and early-stopping
     :return: model.fit.history
     '''
-    history = mdl.fit(images, labels, epochs=num_e)
+    if call_backs == []:
+        history = mdl.fit(images, labels, epochs=num_e, batch_size=batch_size)
+    else:
+        history = mdl.fit(images, labels, epochs=num_e,
+                          batch_size=batch_size, callbacks=call_backs)
     return history
 
 
@@ -106,10 +114,10 @@ def evaluate_model(mdl, images, labels):
 mnist_data = tf.keras.datasets.mnist
 (train_images, train_labels), (test_images, test_labels) = mnist_data.load_data()
 
-# # reduce training date
-# (train_images, train_labels) = reduce_date(train_images, train_labels, 1000)
-# # reduce testing date
-# (test_images, test_labels) = reduce_date(test_images, test_labels, 100)
+# reduce training date
+(train_images, train_labels) = reduce_date(train_images, train_labels, 20000)
+# reduce testing date
+(test_images, test_labels) = reduce_date(test_images, test_labels, 1000)
 
 # scale input data
 scaled_train_images, scaled_test_images = scale_data(train_images, test_images)
@@ -118,6 +126,7 @@ scaled_train_images, scaled_test_images = scale_data(train_images, test_images)
 scaled_train_images = scaled_train_images[..., np.newaxis]
 scaled_test_images = scaled_test_images[..., np.newaxis]
 
+# initialize the plot
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 3.5))
 plt.subplots_adjust(bottom=.2, wspace=.3)
 
@@ -125,9 +134,19 @@ plt.subplots_adjust(bottom=.2, wspace=.3)
 metric_plot = {'layers': [], 'test_acc': [], 'train_t': [], 'test_t': []}
 
 # model parameters
-num_epoch = 3
+num_epoch = 10
+batch_size = 64
 min_num_layers = 2
-max_num_layers = 5
+max_num_layers = 4
+# model save settings
+checkpoint = ModelCheckpoint('01.CNN - Saved Model/CNN.{epoch}',
+                             save_weights_only=False, save_freq='epoch')
+# early stopping settings
+early_stop = EarlyStopping(monitor='accuracy', patience=2, min_delta=0.01)
+# form callback list
+call_backs = [checkpoint, early_stop]
+# initiate the list of number of epochs to record all loops n_of_e
+num_of_epochs = []
 
 for n in range(min_num_layers, max_num_layers + 1):
     # create the model
@@ -138,7 +157,8 @@ for n in range(min_num_layers, max_num_layers + 1):
 
     # train the model with the scaled training images
     t0 = time.time()
-    run_log = train_model(model, scaled_train_images, train_labels, num_epoch)
+    run_log = train_model(model, scaled_train_images, train_labels,
+                          num_epoch, batch_size, call_backs)
     t_train = round(time.time() - t0, 3)
     history_data = pd.DataFrame(run_log.history)
 
@@ -161,41 +181,48 @@ for n in range(min_num_layers, max_num_layers + 1):
     metric_plot['train_t'].append(t_train)
     metric_plot['test_t'].append(t_test)
 
+    # record number of epochs for this loop
+    num_of_epochs.append(len(history_data['accuracy']))
     # plot accuracy vs epochs
-    axes[1].plot(range(1, num_epoch + 1), 'accuracy', data=history_data,
-                 marker='o', label=str(n) + '-layer')
+    axes[1].plot(range(1, num_of_epochs[-1] + 1), 'accuracy',
+                 data=history_data, marker='o', label=str(n) + '-layer')
 
 # plot test accuracy vs # of layers
 axes[0].plot('layers', 'test_acc', data=metric_plot, marker='o')
-axes[0].set_xlabel('# of layers')
+axes[0].set_xlabel('# of Layers')
 axes[0].set_ylabel('Test Accuracy')
 axes[0].set_xlim([min_num_layers - 1, max_num_layers + 1])
 axes[0].set_ylim([.9, 1.])
 
 # plot training accuracy vs # of epochs for models with different number of layers
 axes[1].legend(loc='best')
-axes[1].set_xlabel('Epochs')
+axes[1].set_xlabel('Epoch Number')
 axes[1].set_ylabel('Train Accuracy')
-axes[1].set_xlim([0, num_epoch + 1])
+axes[1].set_xlim([0, max(num_of_epochs) + 1])
 axes[1].set_ylim([.8, 1.])
 axes[1].xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
 
 # plot training and test time vs # of layers
-l1, = axes[2].plot('layers', 'train_t', data=metric_plot, marker='o', label='Train')
-ax2 = axes[2].twinx()
-l2, = ax2.plot('layers', 'test_t', data=metric_plot, marker='o', c='r', label='Test')
-lines = [l1, l2]
+ax2 = axes[2].twinx()  # set a secondary axis
 axes[2].set_xlim([min_num_layers - 1, max_num_layers + 1])
 axes[2].xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
-axes[2].set_xlabel('# of layers')
+axes[2].set_xlabel('# of Layers')
 axes[2].set_ylabel('Train CPU Time (s)')
 ax2.set_ylabel('Test CPU Time (s)')
-axes[2].legend(lines, [l.get_label() for l in lines], loc='best')
 ax2.tick_params(axis='both', right=False)
+l1, = axes[2].plot('layers', 'train_t', data=metric_plot, marker='o', label='Train')
+l2, = ax2.plot('layers', 'test_t', data=metric_plot, marker='o', c='r', label='Test')
+lines = [l1, l2]
+axes[2].legend(lines, [l.get_label() for l in lines], loc='best')
 
 # format the plot
 for i in range(3):
-    axes[i].tick_params(axis='both', bottom=False, left=False)
-    axes[i].grid(True)
+    axes[i].tick_params(axis='both', bottom=False, left=False)  # remove ticks
+    axes[i].grid(True)  # add grids
 
-plt.show()
+# save the plot
+now = datetime.now()
+t = now.strftime('%d-%m-%y %H.%M.%S')
+plt.savefig(f'01.CNN - Saved Model/01.CNN {t}.png', dpi=300)
+
+# plt.show()
