@@ -114,10 +114,10 @@ def evaluate_model(mdl, images, labels):
 mnist_data = tf.keras.datasets.mnist
 (train_images, train_labels), (test_images, test_labels) = mnist_data.load_data()
 
-# reduce training date
-(train_images, train_labels) = reduce_date(train_images, train_labels, 20000)
-# reduce testing date
-(test_images, test_labels) = reduce_date(test_images, test_labels, 1000)
+# # reduce training date
+# (train_images, train_labels) = reduce_date(train_images, train_labels, 2000)
+# # reduce testing date
+# (test_images, test_labels) = reduce_date(test_images, test_labels, 100)
 
 # scale input data
 scaled_train_images, scaled_test_images = scale_data(train_images, test_images)
@@ -134,17 +134,12 @@ plt.subplots_adjust(bottom=.2, wspace=.3)
 metric_plot = {'layers': [], 'test_acc': [], 'train_t': [], 'test_t': []}
 
 # model parameters
-num_epoch = 10
-batch_size = 64
+num_epoch = 50
+batch_size = 128
 min_num_layers = 2
-max_num_layers = 4
-# model save settings
-checkpoint = ModelCheckpoint('01.CNN - Saved Model/CNN.{epoch}',
-                             save_weights_only=False, save_freq='epoch')
+max_num_layers = 5
 # early stopping settings
-early_stop = EarlyStopping(monitor='accuracy', patience=2, min_delta=0.01)
-# form callback list
-call_backs = [checkpoint, early_stop]
+early_stop = EarlyStopping(monitor='accuracy', patience=1, min_delta=0.005)
 # initiate the list of number of epochs to record all loops n_of_e
 num_of_epochs = []
 
@@ -154,6 +149,14 @@ for n in range(min_num_layers, max_num_layers + 1):
 
     # compile the model
     compile_model(model)
+
+    # create path for saving model
+    path = f'01.CNN - Saved Model/{n}-Layers/'
+    # set model save settings
+    checkpoint = ModelCheckpoint(path + 'CNN.Ep{epoch:02d}',
+                                 save_weights_only=False, save_freq='epoch')
+    # form callback list
+    call_backs = [checkpoint, early_stop]
 
     # train the model with the scaled training images
     t0 = time.time()
