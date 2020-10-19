@@ -2,14 +2,7 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
-
-
-# scale the data
-def scale_data(x_train, x_test):
-    x_train = x_train / 255.
-    x_test = x_test / 255.
-    return x_train, x_test
-
+from utils import scale_data
 
 # load MNIST data directly from keras
 mnist_data = tf.keras.datasets.mnist
@@ -27,9 +20,9 @@ test_image = scaled_test_images[random_inx]
 plt.imshow(test_image, cmap='gray')
 
 # load the model
-n = 4  # model with this number of layers
-ep = 5  # epoch number
-model = load_model(f'01.CNN - Saved Model/{n}-Layers/CNN.Ep0{ep}')
+n = 3  # model with this number of layers
+ep = 10  # epoch number
+model = load_model(f'01.CNN - Saved Model/{n}-Layers/CNN.Ep{ep:02d}')
 
 # use the model to predict the label of the chosen image
 prediction = model.predict(test_image[np.newaxis, ...])
