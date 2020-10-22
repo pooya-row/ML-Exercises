@@ -1,5 +1,80 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.callbacks import Callback
+from sklearn.metrics import confusion_matrix, classification_report
+import numpy as np
+import gzip
+import idx2numpy
+
+
+# custom callback class for prediction metrics
+class PredictionCallback(Callback):
+    '''
+    This object creates callbacks which generate the classification report
+    as well as the confusion matrix for a given epoch and a set of (data, label).
+
+    :param data: input images '(num, pixel, pixel, channel)'
+    :param label: images known labels (num, class label)
+    '''
+
+    def __init__(self, data, label):
+        super().__init__()
+        self.data = data  # input images
+        self.label = label  # image labels
+
+    def on_train_begin(self, logs=None):
+        '''
+        initiate collectors at the beginning of training
+        '''
+        self.confusion = []  # list collector for confusion matrices
+        self.report = []  # list collector for classification reports
+        self.last_epoch = 0
+
+    # at the end of each epoch append classification report and
+    # confusion matrix of that epoch to the collectors
+    def on_epoch_end(self, epoch, logs=None):
+        '''
+        At the end of each epoch append classification report and
+        confusion matrix of that epoch to the collectors
+        '''
+
+        y_hat = self.model.predict(self.data)
+
+        self.report.append(
+            classification_report(y_true=self.label,
+                                  y_pred=np.argmax(y_hat, axis=1),
+                                  digits=3))
+
+        self.confusion.append(
+            confusion_matrix(y_true=self.label,
+                             y_pred=np.argmax(y_hat, axis=1)))
+
+        self.last_epoch = epoch + 1
+
+
+# data importer
+def MNIST_import(path, files):
+    '''
+    This function gets a list of compressed *.gz binary-like files and
+     returns them in form of numpy arrays.
+
+    :param path: absolute address of the input files
+    :param files: list of 4 files in this order
+     (train_images, train_labels, t10k_images, t10k_labels)
+    :return: 4 numpy arrays in the same order of the files
+    '''
+    data = []
+
+    for file in files:
+        with gzip.open(path + file, 'r') as f:
+            data.append(idx2numpy.convert_from_file(f))
+
+    train_images = data.pop(0)
+    train_labels = data.pop(0)
+    t10k_images = data.pop(0)
+    t10k_labels = data.pop(0)
+
+    return train_images, train_labels, t10k_images, t10k_labels
 
 
 # scale the data
@@ -10,7 +85,7 @@ def scale_data(x_train, x_test):
 
 
 # reduce data
-def reduce_date(x, y, n=5000):
+def reduce_date(x, y, n=5120):
     '''
     This function takes in two lists keeps only the first n elements of them
     :param x: list
@@ -40,11 +115,12 @@ def get_model(num_layers, input_shape):
     model = tf.keras.models.Sequential()
 
     # add layers
-    model.add(Conv2D(4, kernel_size=5, padding='valid', activation='relu', input_shape=input_shape))
+    model.add(Conv2D(4, kernel_size=5, padding='valid',
+                     activation='relu', input_shape=input_shape))
     model.add(MaxPooling2D((3, 3), strides=1))
 
     for i in range(num_layers):
-        model.add(Conv2D(8, kernel_size=3, padding='valid', activation='relu'))
+        model.add(Conv2D(16, kernel_size=3, padding='valid', activation='relu'))
         model.add(MaxPooling2D((3, 3), strides=1))
 
     model.add(Flatten())
@@ -54,7 +130,7 @@ def get_model(num_layers, input_shape):
 
 
 # compile the model
-def compile_model(mdl):
+def compile_model(mdl, metrics):
     '''
     This function takes in the model returned from get_model function, and compiles it with
         * SGD optimiser (with default settings)
@@ -63,9 +139,12 @@ def compile_model(mdl):
     This function does not return anything; the model will be compiled in-place.
 
     :param mdl: Sequential model from `get_model`
+    :param metrics: list, list of metrics to be monitored and recorded
     :return: None
     '''
-    mdl.compile(optimizer='SGD', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    mdl.compile(optimizer='SGD',
+                loss='sparse_categorical_crossentropy',
+                metrics=metrics)
 
 
 # train the model
@@ -83,7 +162,8 @@ def train_model(mdl, images, labels, num_e, batch_size, call_backs):
     :return: model.fit.history
     '''
     if call_backs == []:
-        history = mdl.fit(images, labels, epochs=num_e, batch_size=batch_size)
+        history = mdl.fit(images, labels, epochs=num_e,
+                          batch_size=batch_size)
     else:
         history = mdl.fit(images, labels, epochs=num_e,
                           batch_size=batch_size, callbacks=call_backs)
