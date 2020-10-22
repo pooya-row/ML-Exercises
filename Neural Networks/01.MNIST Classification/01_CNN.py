@@ -3,20 +3,32 @@ import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import time
 from datetime import datetime
 import utils
+import os
+
+files = [
+    'train-images-idx3-ubyte.gz',
+    'train-labels-idx1-ubyte.gz',
+    't10k-images-idx3-ubyte.gz',
+    't10k-labels-idx1-ubyte.gz'
+]
+
+path = os.getcwd() + '\\00_MNIST_data\\'
 
 # load MNIST data directly from keras
-mnist_data = tf.keras.datasets.mnist
-(train_images, train_labels), (test_images, test_labels) = mnist_data.load_data()
+# mnist_data = tf.keras.datasets.mnist
+# (train_images, train_labels), (test_images, test_labels) = mnist_data.load_data()
+# load MNIST from local compressed files
+train_images, train_labels, test_images, test_labels = utils.MNIST_import(path, files)
 
 # reduce training date
-(train_images, train_labels) = utils.reduce_date(train_images, train_labels, 5000)
+(train_images, train_labels) = utils.reduce_date(train_images, train_labels, 5120)
 # reduce testing date
-(test_images, test_labels) = utils.reduce_date(test_images, test_labels, 500)
+(test_images, test_labels) = utils.reduce_date(test_images, test_labels, 300)
 
 # scale input data
 scaled_train_images, scaled_test_images = utils.scale_data(train_images, test_images)
@@ -26,28 +38,35 @@ scaled_train_images = scaled_train_images[..., np.newaxis]
 scaled_test_images = scaled_test_images[..., np.newaxis]
 
 # initialize the plot
-fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 3.5))
-plt.subplots_adjust(bottom=0.2, wspace=0.3)
+fig1, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 3.5))
+fig1.subplots_adjust(bottom=0.2, wspace=0.3)
 
 # initiate the metric record for plot
 metric_plot = {'layers': [], 'test_acc': [], 'train_t': [], 'test_t': []}
 
 # model parameters
-num_epoch = 50
-batch_size = 64
+num_epoch = 12
+batch_size = 32
 min_num_layers = 2
 max_num_layers = 4
 # early stopping settings
-early_stop = EarlyStopping(monitor='accuracy', patience=2, min_delta=0.005)
+early_stop = EarlyStopping(monitor='accuracy', patience=2, min_delta=0.01)
 # initiate the list of number of epochs to record all loops n_of_e
 num_of_epochs = []
+
+# metrics to monitor and record in history
+MET = ['accuracy']
+
+all_prec = []
+all_rcll = []
+max_epoch = []
 
 for n in range(min_num_layers, max_num_layers + 1):
     # create the model
     model = utils.get_model(n, scaled_train_images[0].shape)
 
     # compile the model
-    utils.compile_model(model)
+    utils.compile_model(model, MET)
 
     # create path for saving model
     path = f'01.CNN - Saved Model/{n}-Layers/'
@@ -55,27 +74,56 @@ for n in range(min_num_layers, max_num_layers + 1):
     checkpoint = ModelCheckpoint(path + 'CNN.Ep{epoch:02d}',
                                  save_weights_only=False, save_freq='epoch')
     # form callback list
-    call_backs = [checkpoint, early_stop]
+    call_backs = [
+        [],
+        early_stop,
+        utils.PredictionCallback(scaled_train_images, train_labels)
+    ]
 
     # train the model with the scaled training images
     t0 = time.time()
     run_log = utils.train_model(model, scaled_train_images, train_labels,
                                 num_epoch, batch_size, call_backs)
     t_train = round(time.time() - t0, 3)
+    # retrieve history data
     history_data = pd.DataFrame(run_log.history)
+    # print(history_data.head())
+
+    # generate and format classification report
+    max_epoch.append(call_backs[2].last_epoch)
+    precision = []
+    recall = []
+
+    for i in range(call_backs[2].last_epoch):
+        report = " ".join(call_backs[2].report[i].split())
+
+        cls_rep = []
+        for num in report.split(' '):
+            cls_rep.append(num)
+
+        cls_rep.insert(0, 'class')
+        cls_rep = np.array(cls_rep[:55])
+        cls_rep = cls_rep.reshape((11, 5))
+        precision.append(list(map(float, cls_rep[1:, 1])))
+        recall.append(list(map(float, cls_rep[1:, 2])))
+
+    all_prec.extend(precision)
+    all_rcll.extend(recall)
 
     # evaluate the model on scaled test images
     t0 = time.time()
-    test_loss, test_accuracy = utils.evaluate_model(model, scaled_test_images,
+    test_loss, test_accuracy = utils.evaluate_model(model,
+                                                    scaled_test_images,
                                                     test_labels)
     t_test = round(time.time() - t0, 3)
 
     # print out loss and accuracy
     print(f'N = {n}')
-    print(f'\tTest loss =\t{test_loss:.3f}')
-    print(f'\tTest accuracy =\t{test_accuracy:.3f}')
-    print(f'\tTrain time = {t_train}')
-    print(f'\tTest time = {t_test}')
+    print(f'\tTest loss\t\t{test_loss:.3f}')
+    print(f'\tTest accuracy\t{test_accuracy:.3f}')
+    print(f'\tTrain time\t\t{t_train} s')
+    print(f'\tTest time\t\t{t_test} s')
+    print(f'\tLast Epoch #\t{call_backs[2].last_epoch}')
     print('\n')
 
     # record metrics
@@ -123,9 +171,60 @@ for i in range(3):
     axes[i].tick_params(axis='both', bottom=False, left=False)  # remove ticks
     axes[i].grid(True)  # add grids
 
-# save the plot
+# plot and format precision vs classes for each epoch and each model config
+fig2, axes2 = plt.subplots(nrows=1,
+                           ncols=(max_num_layers - min_num_layers) + 1,
+                           figsize=(14, 4))
+fig2.subplots_adjust(bottom=0.2, wspace=0.3)
+
+col = -1
+for i in range((max_num_layers - min_num_layers) + 1):
+    line = []
+    for j in range(max_epoch[i]):
+        col += 1
+        ll, = axes2[i].plot(range(10), all_prec[col], marker='o', label='Epoch #' + str(j))
+        line.append(ll)
+        axes2[i].legend(line, [l.get_label() for l in line], loc='best')
+
+    axes2[i].set_title(f'Model with {min_num_layers + i} hidden layers')
+    axes2[i].set_xlabel('Classes')
+    axes2[i].set_ylabel('Precision')
+    axes2[i].tick_params(axis='both', bottom=False, left=False)  # remove ticks
+    axes2[i].grid(True)
+    axes2[i].set_xlim([0, 9])
+    axes2[i].xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
+
+# plot and format recall vs classes for each epoch and each model config
+fig3, axes3 = plt.subplots(nrows=1,
+                           ncols=(max_num_layers - min_num_layers) + 1,
+                           figsize=(14, 4))
+fig3.subplots_adjust(bottom=0.2, wspace=0.3)
+
+col = -1
+for i in range((max_num_layers - min_num_layers) + 1):
+    line = []
+    for j in range(max_epoch[i]):
+        col += 1
+        ll, = axes3[i].plot(range(10), all_rcll[col], marker='o', label='Epoch #' + str(j))
+        line.append(ll)
+        axes3[i].legend(line, [l.get_label() for l in line], loc='best')
+
+    axes3[i].set_title(f'Model with {min_num_layers + i} hidden layers')
+    axes3[i].set_xlabel('Classes')
+    axes3[i].set_ylabel('Recall')
+    axes3[i].tick_params(axis='both', bottom=False, left=False)  # remove ticks
+    axes3[i].grid(True)
+    axes3[i].set_xlim([0, 9])
+    axes3[i].xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
+
+# save all plots
 now = datetime.now()
 t = now.strftime('%d-%m-%y %H.%M.%S')
-plt.savefig(f'01.CNN - Saved Model/01.CNN {t}.png', dpi=300)
-
+fig1.savefig(f'01.CNN - Saved Model/01.CNN {t}.png', dpi=300)
+fig2.savefig(f'01.CNN - Saved Model/Precision {t}.png', dpi=300)
+fig3.savefig(f'01.CNN - Saved Model/Recall {t}.png', dpi=300)
+# print('\n', len(all_prec))
+# print('\n', all_prec)
+# print('\n', len(all_rcll))
+# print('\n', all_rcll)
 # plt.show()
