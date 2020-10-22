@@ -148,7 +148,7 @@ def compile_model(mdl, metrics):
 
 
 # train the model
-def train_model(mdl, images, labels, num_e, batch_size, call_backs):
+def train_model(mdl, images, labels, val_images, val_labels, num_e, batch_size, call_backs):
     '''
     This function trains the model for `num_e` epochs on the `scaled_train_images` and train_labels
     and returns the training history, as returned by `model.fit`.
@@ -156,17 +156,22 @@ def train_model(mdl, images, labels, num_e, batch_size, call_backs):
     :param mdl: Sequential model from `get_model`
     :param images: numpy.ndarray (n_train, pixel, pixel, channel=1)
     :param labels: numpy.ndarray (n_train, 1)
+    :param val_images: validation data, numpy.ndarray (n_val, pixel, pixel, channel=1)
+    :param val_labels: validation labels, numpy.ndarray (n_val, 1)
     :param num_e: int number of epochs
     :param batch_size: int, size of mini batches
     :param call_backs: list of callbacks for model saving and early-stopping
     :return: model.fit.history
     '''
     if call_backs == []:
-        history = mdl.fit(images, labels, epochs=num_e,
-                          batch_size=batch_size)
+        history = mdl.fit(images, labels,
+                          validation_data=(val_images, val_labels),
+                          epochs=num_e, batch_size=batch_size)
     else:
-        history = mdl.fit(images, labels, epochs=num_e,
-                          batch_size=batch_size, callbacks=call_backs)
+        history = mdl.fit(images, labels,
+                          validation_data=(val_images, val_labels),
+                          epochs=num_e, batch_size=batch_size,
+                          callbacks=call_backs)
     return history
 
 
