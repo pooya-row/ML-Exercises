@@ -1,14 +1,14 @@
-test.py
-Iris/00_data/*
-KNN/mnist_train.csv
+.idea
+__pycache__
+Iris/00_data
 Neural Networks/00.Tensorflow Exercises/GlobalPooling
-Neural Networks/00.Tensorflow Exercises/MNIST_1.png
-Neural Networks/01.MNIST Classification/Metrics.py
-Neural Networks/01.MNIST Classification/test.py
 Neural Networks/01.MNIST Classification/00_MNIST_data
 Neural Networks/01.MNIST Classification/01.CNN - Saved Model
 Neural Networks/01.MNIST Classification/02_IBS-Saved Model
-Neural Networks/00.Tensorflow Exercises/layers_test.py
 Titanic_Kaggle/00_data
-.idea
-__pycache__
+test.py
+KNN/mnist_train.csv
+Neural Networks/00.Tensorflow Exercises/layers_test.py
+Neural Networks/00.Tensorflow Exercises/MNIST_1.png
+Neural Networks/01.MNIST Classification/Metrics.py
+Neural Networks/01.MNIST Classification/test.py
