@@ -5,9 +5,45 @@ import matplotlib
 import time
 import utils
 import os
+import tensorflow as tf
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, GlobalAveragePooling2D
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 from sklearn.model_selection import train_test_split
 from datetime import datetime
+
+
+# build the model
+def get_model(num_layers, input_shape):
+    '''
+    This function builds a Sequential model according to the below specification:
+        1. A 2D convolutional layer with a 5x5 kernel and 8 filters; zero padding; ReLU activation function
+        2. n 2D convolutional layers with 3x3 kernels and 8 filters; zero padding; ReLU activation function
+        3. n+1 maxpooling layers, with 3x3 window, and strides of 1 after each of the layers above
+        4. A flatten layer, which unrolls the input into a one-dimensional tensor
+        5. A dense output layer with 10 units and the SIGMOID activation function
+    :param input_shape: tuple (pixel, pixel, channel=1)
+    :param num_layers: int, number of layers
+    :return: the model
+    '''
+
+    # instantiate the model
+    model = tf.keras.models.Sequential()
+
+    # add layers
+    model.add(Conv2D(4, kernel_size=5, padding='valid', activation='relu', input_shape=input_shape))
+    model.add(MaxPooling2D((3, 3), strides=1))
+    # model.add(GlobalAveragePooling2D())
+
+    for i in range(num_layers):
+        model.add(Conv2D(16, kernel_size=3, padding='valid', activation='relu'))
+        model.add(MaxPooling2D((3, 3), strides=1))
+
+    # model.add(GlobalAveragePooling2D(name='Pooya'))
+    model.add(Flatten())
+    model.add(Dense(10, activation='sigmoid'))
+
+    return model
+
 
 files = [
     'train-images-idx3-ubyte.gz',
@@ -64,15 +100,15 @@ max_epoch = []
 
 for n in range(min_num_layers, max_num_layers + 1):
     # create the model
-    model = utils.get_model(n, scaled_train_images[0].shape)
+    model = get_model(n, scaled_train_images[0].shape)
 
     # compile the model
     utils.compile_model(model, MET)
 
     # create path for saving model
-    path = f'01_CNN-Saved Model/{n}-Layers/'
+    path = f'02_IBS-Saved Model/{n}-Layers/'
     # set model save settings
-    checkpoint = ModelCheckpoint(path + 'CNN_Ep{epoch:02d}',
+    checkpoint = ModelCheckpoint(path + 'IBS_Ep{epoch:02d}',
                                  save_weights_only=False, save_freq='epoch')
     # form callback list
     call_backs = [
@@ -92,6 +128,12 @@ for n in range(min_num_layers, max_num_layers + 1):
     # retrieve history data
     history_data = pd.DataFrame(run_log.history)
     # print(history_data.head())
+
+    # run a single prediction
+    # random_inx = np.random.choice(scaled_test_images.shape[0])
+    # test_image = scaled_test_images[random_inx]
+    # print(model.predict(test_image[np.newaxis, ...]))
+    # print(f"Actual Label is:\t{test_labels[random_inx]}")
 
     # generate and format classification report
     max_epoch.append(call_backs[2].last_epoch)
@@ -127,7 +169,7 @@ for n in range(min_num_layers, max_num_layers + 1):
     print(f'\tTest accuracy\t{test_accuracy:.3f}')
     print(f'\tTrain time\t\t{t_train} s')
     print(f'\tTest time\t\t{t_test} s')
-    print(f'\tLast Epoch #\t{call_backs[2].last_epoch}')
+    print(f'\tLast epoch #\t{call_backs[2].last_epoch}')
     print('\n')
 
     # record metrics
@@ -226,9 +268,9 @@ for i in range((max_num_layers - min_num_layers) + 1):
 # save all plots
 now = datetime.now()
 t = now.strftime('%d-%m-%y %H.%M.%S')
-fig1.savefig(f'01_CNN-Saved Model/01_CNN {t}.png', dpi=300)
-fig2.savefig(f'01_CNN-Saved Model/01_Precision {t}.png', dpi=300)
-fig3.savefig(f'01_CNN-Saved Model/01_Recall {t}.png', dpi=300)
+fig1.savefig(f'02_IBS-Saved Model/02_IBS {t}.png', dpi=300)
+fig2.savefig(f'02_IBS-Saved Model/02_Precision {t}.png', dpi=300)
+fig3.savefig(f'02_IBS-Saved Model/02_Recall {t}.png', dpi=300)
 # print('\n', len(all_prec))
 # print('\n', all_prec)
 # print('\n', len(all_rcll))

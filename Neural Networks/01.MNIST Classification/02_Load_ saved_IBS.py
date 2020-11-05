@@ -21,9 +21,9 @@ test_image = scaled_test_images[random_inx]
 plt.imshow(test_image, cmap='Greys')
 
 # load the model
-n = 3  # model with this number of layers
-ep = 7  # epoch number
-model = load_model(f'01_CNN-Saved Model/{n}-Layers/CNN_Ep{ep:02d}')
+n = 2  # model with this number of layers
+ep = 5  # epoch number
+model = load_model(f'02_IBS-Saved Model/{n}-Layers/IBS_Ep{ep:02d}')
 
 # use the model to predict the label of the chosen image
 prediction = model.predict(test_image[np.newaxis, ...])
