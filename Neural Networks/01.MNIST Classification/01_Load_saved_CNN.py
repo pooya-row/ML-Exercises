@@ -23,7 +23,7 @@ plt.imshow(test_image, cmap='Greys')
 # load the model
 n = 3  # model with this number of layers
 ep = 7  # epoch number
-model = load_model(f'01_CNN-Saved Model/{n}-Layers/CNN_Ep{ep:02d}')
+model = load_model(f'01.CNN - Saved Model/{n}-Layers/CNN.Ep{ep:02d}')
 
 # use the model to predict the label of the chosen image
 prediction = model.predict(test_image[np.newaxis, ...])

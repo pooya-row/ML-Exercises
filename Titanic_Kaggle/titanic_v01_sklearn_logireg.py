@@ -22,7 +22,6 @@ def fill_in_age(df):
             return age_means[2]
     return df['Age']
 
-
 # load data
 train_data = pd.read_csv('00_data/train.csv')
 test_data = pd.read_csv('00_data/test.csv')

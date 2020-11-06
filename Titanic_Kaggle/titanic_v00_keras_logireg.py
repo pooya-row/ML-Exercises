@@ -6,7 +6,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.metrics import classification_report
 
-
 # function to assign proper age average to passengers with missing age data
 def fill_in_age(df):
     if pd.isnull(df['Age']):

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from utils import scale_data
 from pprint import pprint
 
+
 # load MNIST data directly from keras
 mnist_data = tf.keras.datasets.mnist
 _, (test_images, test_labels) = mnist_data.load_data()

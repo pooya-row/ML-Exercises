@@ -33,4 +33,5 @@ if __name__ == '__main__':
     # train the model for one batch containing the entire dataset
     keras_model.fit(x, y, epochs=25, batch_size=x.shape[0])
 
+
     # keras_model.save_weights("my_checkpoint")

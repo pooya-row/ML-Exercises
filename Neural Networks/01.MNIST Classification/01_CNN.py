@@ -18,6 +18,9 @@ files = [
 
 path = os.getcwd() + '\\00_MNIST_data\\'
 
+# load MNIST data directly from keras
+# mnist_data = tf.keras.datasets.mnist
+# (train_images, train_labels), (test_images, test_labels) = mnist_data.load_data()
 # load MNIST from local compressed files
 train_images, train_labels, test_images, test_labels = utils.MNIST_import(path, files)
 
@@ -45,7 +48,7 @@ fig1.subplots_adjust(bottom=0.2, wspace=0.3)
 metric_plot = {'layers': [], 'test_acc': [], 'train_t': [], 'test_t': []}
 
 # model parameters
-num_epoch = 15
+num_epoch = 25
 batch_size = 128
 min_num_layers = 2
 max_num_layers = 4
@@ -70,9 +73,9 @@ for n in range(min_num_layers, max_num_layers + 1):
     utils.compile_model(model, MET)
 
     # create path for saving model
-    path = f'01_CNN-Saved Model/{n}-Layers/'
+    path = f'01.CNN - Saved Model/{n}-Layers/'
     # set model save settings
-    checkpoint = ModelCheckpoint(path + 'CNN_Ep{epoch:02d}',
+    checkpoint = ModelCheckpoint(path + 'CNN.Ep{epoch:02d}',
                                  save_weights_only=False, save_freq='epoch')
     # form callback list
     call_backs = [
@@ -186,8 +189,7 @@ for i in range((max_num_layers - min_num_layers) + 1):
     line = []
     for j in range(max_epoch[i]):
         col += 1
-        ll, = axes2[i].plot(range(10), all_prec[col],
-                            marker='o', label='Epoch #' + str(j + 1))
+        ll, = axes2[i].plot(range(10), all_prec[col], marker='o', label='Epoch #' + str(j+1))
         line.append(ll)
         axes2[i].legend(line, [l.get_label() for l in line], loc='best')
 
@@ -210,8 +212,7 @@ for i in range((max_num_layers - min_num_layers) + 1):
     line = []
     for j in range(max_epoch[i]):
         col += 1
-        ll, = axes3[i].plot(range(10), all_rcll[col],
-                            marker='o', label='Epoch #' + str(j + 1))
+        ll, = axes3[i].plot(range(10), all_rcll[col], marker='o', label='Epoch #' + str(j+1))
         line.append(ll)
         axes3[i].legend(line, [l.get_label() for l in line], loc='best')
 
@@ -226,9 +227,9 @@ for i in range((max_num_layers - min_num_layers) + 1):
 # save all plots
 now = datetime.now()
 t = now.strftime('%d-%m-%y %H.%M.%S')
-fig1.savefig(f'01_CNN-Saved Model/01_CNN {t}.png', dpi=300)
-fig2.savefig(f'01_CNN-Saved Model/01_Precision {t}.png', dpi=300)
-fig3.savefig(f'01_CNN-Saved Model/01_Recall {t}.png', dpi=300)
+fig1.savefig(f'01.CNN - Saved Model/01.CNN {t}.png', dpi=300)
+fig2.savefig(f'01.CNN - Saved Model/Precision {t}.png', dpi=300)
+fig3.savefig(f'01.CNN - Saved Model/Recall {t}.png', dpi=300)
 # print('\n', len(all_prec))
 # print('\n', all_prec)
 # print('\n', len(all_rcll))
