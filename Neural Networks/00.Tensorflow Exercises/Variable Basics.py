@@ -71,6 +71,7 @@ x1 = tf.Variable(3.0, name='x1', trainable=False)
 # Not a Variable: A variable + tensor returns a tensor.
 x2 = tf.Variable(4., name='pooya')
 # x2 = x2.assign_add(1)
+
 # Not a variable
 x3 = tf.constant(3.0, name='x3')
 

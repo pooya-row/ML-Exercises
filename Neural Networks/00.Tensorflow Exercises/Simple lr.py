@@ -80,6 +80,7 @@ if __name__ == '__main__':
     # execute training loop
     training_loop(lr_model, x, y)
 
+
     # plot it
     plt.plot(epochs, Ws, "r", epochs, bs, "b")
     plt.plot([TRUE_W] * len(epochs), "r--", [TRUE_B] * len(epochs), "b--")

@@ -174,7 +174,6 @@ def train_model(mdl, images, labels, val_images, val_labels, num_e, batch_size, 
                           callbacks=call_backs)
     return history
 
-
 # evaluate the model
 def evaluate_model(mdl, images, labels):
     '''

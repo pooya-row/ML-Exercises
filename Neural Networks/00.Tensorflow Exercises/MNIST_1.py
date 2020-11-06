@@ -133,6 +133,7 @@ ax = history_data.plot(secondary_y='loss', mark_right=False, marker='o')
 ax.set_ylabel('Accuracy')
 ax.right_ax.set_ylabel('Loss')
 ax.set_xlabel('Epochs')
+
 # format x-axis labels
 locator = matplotlib.ticker.MultipleLocator(1)
 plt.gca().xaxis.set_major_locator(locator)

@@ -1,6 +1,10 @@
 .idea
 __pycache__
+<<<<<<< HEAD
 Iris/00_data
+=======
+Iris/00_data/
+>>>>>>> new-backup
 Neural Networks/00.Tensorflow Exercises/GlobalPooling
 Neural Networks/01.MNIST Classification/00_MNIST_data
 Neural Networks/01.MNIST Classification/01.CNN - Saved Model
@@ -11,4 +15,8 @@ KNN/mnist_train.csv
 Neural Networks/00.Tensorflow Exercises/layers_test.py
 Neural Networks/00.Tensorflow Exercises/MNIST_1.png
 Neural Networks/01.MNIST Classification/Metrics.py
+<<<<<<< HEAD
 Neural Networks/01.MNIST Classification/test.py
+=======
+Neural Networks/01.MNIST Classification/test.py
+>>>>>>> new-backup

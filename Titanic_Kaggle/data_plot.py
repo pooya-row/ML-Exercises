@@ -68,6 +68,7 @@ def data_explore(train_data):
 # sns.rugplot(train_data['Age'])
 # sns.stripplot(x='Age', y='PassengerId', data=train_data, jitter=False)
 
+
 # sns.pairplot(train_data)
 # sns.barplot(train_data['Pclass'], train_data['Survived'])
 # fig2.show()
