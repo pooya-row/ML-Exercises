@@ -9,13 +9,13 @@ import idx2numpy
 
 # custom callback class for prediction metrics
 class PredictionCallback(Callback):
-    '''
+    """
     This object creates callbacks which generate the classification report
     as well as the confusion matrix for a given epoch and a set of (data, label).
 
     :param data: input images '(num, pixel, pixel, channel)'
     :param label: images known labels (num, class label)
-    '''
+    """
 
     def __init__(self, data, label):
         super().__init__()
@@ -23,9 +23,9 @@ class PredictionCallback(Callback):
         self.label = label  # image labels
 
     def on_train_begin(self, logs=None):
-        '''
+        """
         initiate collectors at the beginning of training
-        '''
+        """
         self.confusion = []  # list collector for confusion matrices
         self.report = []  # list collector for classification reports
         self.last_epoch = 0
@@ -33,10 +33,10 @@ class PredictionCallback(Callback):
     # at the end of each epoch append classification report and
     # confusion matrix of that epoch to the collectors
     def on_epoch_end(self, epoch, logs=None):
-        '''
+        """
         At the end of each epoch append classification report and
         confusion matrix of that epoch to the collectors
-        '''
+        """
 
         y_hat = self.model.predict(self.data)
 
@@ -54,7 +54,7 @@ class PredictionCallback(Callback):
 
 # data importer
 def MNIST_import(path, files):
-    '''
+    """
     This function gets a list of compressed *.gz binary-like files and
      returns them in form of numpy arrays.
 
@@ -62,7 +62,7 @@ def MNIST_import(path, files):
     :param files: list of 4 files in this order
      (train_images, train_labels, t10k_images, t10k_labels)
     :return: 4 numpy arrays in the same order of the files
-    '''
+    """
     data = []
 
     for file in files:
@@ -86,19 +86,19 @@ def scale_data(x_train, x_test):
 
 # reduce data
 def reduce_date(x, y, n=5120):
-    '''
+    """
     This function takes in two lists keeps only the first n elements of them
     :param x: list
     :param y: list
     :param n: int
     :return: truncated x-list, truncated y-list
-    '''
+    """
     return x[:n], y[:n]
 
 
 # build the model
 def get_model(num_layers, input_shape):
-    '''
+    """
     This function builds a Sequential model according to the below specification:
         1. A 2D convolutional layer with a 5x5 kernel and 4 filters; no padding; ReLU activation function
         2. MaxPooling with 3x3 kernel
@@ -109,7 +109,7 @@ def get_model(num_layers, input_shape):
     :param input_shape: tuple (pixel, pixel, channel=1)
     :param num_layers: int, number of layers
     :return: Sequential model object
-    '''
+    """
 
     # instantiate the model
     model = tf.keras.models.Sequential()
@@ -131,7 +131,7 @@ def get_model(num_layers, input_shape):
 
 # compile the model
 def compile_model(mdl, metrics):
-    '''
+    """
     This function takes in the model returned from get_model function, and compiles it with
         * SGD optimiser (with default settings)
         * cross-entropy loss function
@@ -141,7 +141,8 @@ def compile_model(mdl, metrics):
     :param mdl: Sequential model from `get_model`
     :param metrics: list, list of metrics to be monitored and recorded
     :return: None
-    '''
+    """
+
     mdl.compile(optimizer='SGD',
                 loss='sparse_categorical_crossentropy',
                 metrics=metrics)
@@ -149,7 +150,7 @@ def compile_model(mdl, metrics):
 
 # train the model
 def train_model(mdl, images, labels, val_images, val_labels, num_e, batch_size, call_backs):
-    '''
+    """
     This function trains the model for `num_e` epochs on the `scaled_train_images` and train_labels
     and returns the training history, as returned by `model.fit`.
 
@@ -162,7 +163,7 @@ def train_model(mdl, images, labels, val_images, val_labels, num_e, batch_size, 
     :param batch_size: int, size of mini batches
     :param call_backs: list of callbacks for model saving and early-stopping
     :return: model.fit.history
-    '''
+    """
     if call_backs == []:
         history = mdl.fit(images, labels,
                           validation_data=(val_images, val_labels),
@@ -174,9 +175,10 @@ def train_model(mdl, images, labels, val_images, val_labels, num_e, batch_size, 
                           callbacks=call_backs)
     return history
 
+
 # evaluate the model
 def evaluate_model(mdl, images, labels):
-    '''
+    """
     This function evaluates the model on the `scaled_test_images` and `test_labels`.
     and returns a tuple (test_loss, test_accuracy).
 
@@ -184,6 +186,6 @@ def evaluate_model(mdl, images, labels):
     :param images: numpy.ndarray (n_test, pixel, pixel, channel=1)
     :param labels: numpy.ndarray (n_test,1)
     :return: tuple (test_loss, test_accuracy)
-    '''
+    """
     test_loss, test_accuracy = mdl.evaluate(images, labels)
     return test_loss, test_accuracy
