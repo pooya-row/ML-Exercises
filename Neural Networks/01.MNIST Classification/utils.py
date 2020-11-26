@@ -189,3 +189,46 @@ def evaluate_model(mdl, images, labels):
     """
     test_loss, test_accuracy = mdl.evaluate(images, labels)
     return test_loss, test_accuracy
+
+
+# image cropping
+def remove_image_margin(image):
+    """
+    This function removes the blank margin of a given single-channel image
+    :param image: input image as a numpy array (ndarray)
+    :return: output image with no margins as a numpy array (ndarray)
+    """
+
+    # from skimage.transform import rescale, resize, downscale_local_mean
+    # image_rescaled = rescale(cropped_img, .5, anti_aliasing=False)
+    # image_resized = resize(cropped_img, (cropped_img.shape[0] // .5, cropped_img.shape[1] // .5),
+    #                        anti_aliasing=True)
+    # image_downscaled = downscale_local_mean(cropped_img, (2, 3))
+
+    cropped_img = np.copy(image)
+
+    # remove left blank
+    empty_left_col = 0
+    while image[:, empty_left_col].max() == 0:
+        cropped_img = np.delete(cropped_img, 0, 1)
+        empty_left_col += 1
+
+    # remove right blank
+    empty_right_col = len(image[1]) - 1
+    while image[:, empty_right_col].max() == 0:
+        cropped_img = np.delete(cropped_img, -1, 1)
+        empty_right_col -= 1
+
+    # remove top blank
+    empty_top_row = 0
+    while image[empty_top_row, :].max() == 0:
+        cropped_img = np.delete(cropped_img, 0, 0)
+        empty_top_row += 1
+
+    # remove bottom blank
+    empty_bottom_row = len(image[0]) - 1
+    while image[empty_bottom_row, :].max() == 0:
+        cropped_img = np.delete(cropped_img, -1, 0)
+        empty_bottom_row -= 1
+
+    return cropped_img
