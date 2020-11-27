@@ -21,6 +21,7 @@ def get_model(num_layers, input_shape):
         3. n+1 maxpooling layers, with 3x3 window, and strides of 1 after each of the layers above
         4. A flatten layer, which unrolls the input into a one-dimensional tensor
         5. A dense output layer with 10 units and the SIGMOID activation function
+
     :param input_shape: tuple (pixel, pixel, channel=1)
     :param num_layers: int, number of layers
     :return: the model

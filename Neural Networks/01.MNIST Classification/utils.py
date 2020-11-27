@@ -87,7 +87,8 @@ def scale_data(x_train, x_test):
 # reduce data
 def reduce_date(x, y, n=5120):
     """
-    This function takes in two lists keeps only the first n elements of them
+    This function takes in two lists keeps only the first n elements of them.
+
     :param x: list
     :param y: list
     :param n: int
@@ -106,6 +107,7 @@ def get_model(num_layers, input_shape):
         3. MaxPooling layers, one after each of above Conv2Ds with 3x3 window, and strides of 1 (total of n)
         4. A flatten layer, which unrolls the input into a column tensor
         5. A dense output layer with 10 units and the softmax activation function
+
     :param input_shape: tuple (pixel, pixel, channel=1)
     :param num_layers: int, number of layers
     :return: Sequential model object
@@ -192,18 +194,13 @@ def evaluate_model(mdl, images, labels):
 
 
 # image cropping
-def remove_image_margin(image):
+def remove_image_margins(image):
     """
-    This function removes the blank margin of a given single-channel image
+    This function removes the blank margins of a given single-channel image.
+
     :param image: input image as a numpy array (ndarray)
     :return: output image with no margins as a numpy array (ndarray)
     """
-
-    # from skimage.transform import rescale, resize, downscale_local_mean
-    # image_rescaled = rescale(cropped_img, .5, anti_aliasing=False)
-    # image_resized = resize(cropped_img, (cropped_img.shape[0] // .5, cropped_img.shape[1] // .5),
-    #                        anti_aliasing=True)
-    # image_downscaled = downscale_local_mean(cropped_img, (2, 3))
 
     cropped_img = np.copy(image)
 
@@ -232,3 +229,37 @@ def remove_image_margin(image):
         empty_bottom_row -= 1
 
     return cropped_img
+
+
+# make a given image square on its longer dimension
+def make_square(image):
+    """
+    This function gets an image in the form of a numpy array and makes it square
+    on its larger dimension by adding margins symmetrically.
+
+    :param image: input image (ndarray)
+    :return: output squared image (ndarray)
+    """
+    crop_shape = image.shape
+    delta_dim = abs(crop_shape[0] - crop_shape[1])
+
+    if crop_shape[0] > crop_shape[1]:
+        if delta_dim % 2 == 0:
+            image = np.c_[np.zeros((crop_shape[0], int(delta_dim / 2))),
+                          image,
+                          np.zeros((crop_shape[0], int(delta_dim / 2)))]
+        else:
+            image = np.c_[np.zeros((crop_shape[0], int(delta_dim // 2))),
+                          image,
+                          np.zeros((crop_shape[0], int(delta_dim // 2) + 1))]
+    elif crop_shape[0] < crop_shape[1]:
+        if delta_dim % 2 == 0:
+            image = np.r_[np.zeros((int(delta_dim / 2), crop_shape[1])),
+                          image,
+                          np.zeros((int(delta_dim / 2), crop_shape[1]))]
+        else:
+            image = np.r_[np.zeros((int(delta_dim // 2), crop_shape[1])),
+                          image,
+                          np.zeros((int(delta_dim // 2 + 1), crop_shape[1]))]
+
+    return image

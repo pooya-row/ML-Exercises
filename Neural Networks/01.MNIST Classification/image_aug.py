@@ -1,39 +1,92 @@
 import utils
-import os
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage.filters import difference_of_gaussians, unsharp_mask, gaussian
+from skimage.transform import rescale, resize, downscale_local_mean
+import gzip
+import idx2numpy
+import os
 
-# input files
-files = [
-    'train-images-idx3-ubyte.gz',
-    'train-labels-idx1-ubyte.gz',
-    't10k-images-idx3-ubyte.gz',
-    't10k-labels-idx1-ubyte.gz'
-]
-path = os.getcwd() + '\\00_MNIST_data\\'
+# input files and scale input data
+with gzip.open(os.getcwd() + '\\00_MNIST_data\\t10k-images-idx3-ubyte.gz', 'r') as f:
+    test_images = idx2numpy.convert_from_file(f)
 
-# load MNIST from local compressed files
-train_images, train_labels, test_images, test_labels = utils.MNIST_import(path, files)
-
-# scale input data
-scaled_train_images, scaled_test_images = utils.scale_data(train_images, test_images)
+scaled_test_images = test_images / 255.
 
 # randomly chose an image from test set then plot image
 random_inx = np.random.choice(scaled_test_images.shape[0])
+# random_inx = 8700 # 9828
 test_image = scaled_test_images[random_inx]
 
 # crop image
-cropped_img = utils.remove_image_margin(test_image)
+cropped_img = utils.remove_image_margins(test_image)
 
-# print shape of the cropped image
+# apply a Gaussian blur filter
+filtered_cr_img = gaussian(test_image, sigma=1.1)
+
+# make the cropped image square
+squared_cr_img = utils.make_square(cropped_img)
+
+# rescale to match the original image
+rescaled_sq_cr_img = rescale(squared_cr_img,
+                             test_image.shape[0] / squared_cr_img.shape[0],
+                             anti_aliasing=True)
+
+# printouts
 print(f'The cropped image size is: {cropped_img.shape}')
+print(f'The selected random index is: {random_inx}')
+print(f'The rescaled size is: {rescaled_sq_cr_img.shape}')
 
-# plot both original and cropped images
-fig, axes = plt.subplots(nrows=1, ncols=2)
-axes[0].imshow(test_image, cmap='Greys')
-axes[1].imshow(cropped_img, cmap='Greys')
-axes[0].get_xaxis().set_ticks([])
-axes[0].get_yaxis().set_ticks([])
-axes[1].get_xaxis().set_ticks([])
-axes[1].get_yaxis().set_ticks([])
+# plot resulting images
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(10, 5))
+fig.subplots_adjust(hspace=.5, wspace=.5)
+
+gs = axes[0, 0].get_gridspec()
+for ax in axes[:, 0]:  # remove the underlying axes
+    ax.remove()
+axbig = fig.add_subplot(gs[:, 0])  # merge the first column subplots
+
+axbig.imshow(test_image, cmap='Blues')
+axes[0, 1].imshow(cropped_img, cmap='Greys')
+axes[0, 2].imshow(squared_cr_img, cmap='Greys')
+axes[1, 2].imshow(rescaled_sq_cr_img, cmap='Reds')
+axes[1, 1].imshow(filtered_cr_img, cmap='Reds')
+axbig.set_title('Original')
+axes[0, 1].set_title('Cropped (int.)')
+axes[0, 2].set_title('Cropped & Squared (int.)')
+axes[1, 2].set_title('Cropped & Squared & Resized')
+axes[1, 1].set_title('Blurred')
 plt.show()
+
+# 2x3 plot
+# plot resulting images
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(10, 5))
+# fig.subplots_adjust(hspace=.5, wspace=.5)
+# axes[0, 0].imshow(cropped_img, cmap='Greys')
+# axes[1, 0].imshow(filtered_cr_img, cmap='Greys')
+# axes[0, 1].imshow(squared_cr_img, cmap='Greys')
+# axes[1, 1].imshow(squared_flt_cr_img, cmap='Greys')
+# axes[0, 2].imshow(rescaled_sq_cr_img, cmap='Greys')
+# axes[1, 2].imshow(rescaled_sq_flt_cr_img, cmap='Greys')
+# axes[0, 0].set_title('Cropped')
+# axes[1, 0].set_title('Cropped & Blurred')
+# axes[0, 1].set_title('Cropped & Squared')
+# axes[1, 1].set_title('Cropped & Blurred & Squared')
+# axes[0, 2].set_title('Cropped & Squared & Resized')
+# axes[1, 2].set_title('Cropped & Blurred & Squared & Resized')
+# for ax in axes:
+#     for i in range(3):
+#         ax[i].get_xaxis().set_ticks([])
+#         ax[i].get_yaxis().set_ticks([])
+#
+# plt.show()
+
+# other filters
+# from skimage.transform import rescale, resize, downscale_local_mean
+# image_rescaled = rescale(cropped_img, .5, anti_aliasing=False)
+# image_resized = resize(cropped_img, (cropped_img.shape[0] // .5, cropped_img.shape[1] // .5),
+#                        anti_aliasing=True)
+# image_downscaled = downscale_local_mean(cropped_img, (2, 3))
+# filtered_image =unsharp_mask(test_image, radius=10, amount=0.5, preserve_range=True)
+# filtered_image=gaussian(test_image, sigma=1.75)
+# filtered_cr_img = difference_of_gaussians(cropped_img, low_sigma=1, high_sigma=2)
