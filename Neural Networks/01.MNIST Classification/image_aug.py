@@ -39,7 +39,6 @@ print(f'Cropped image size:\t{cropped_img.shape}')
 print(f'Random index:\t\t{random_inx}')
 print(f'True label is:\t\t{test_labels[random_inx]}')
 
-
 # plot resulting images and histogram
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(10, 5))
 fig.subplots_adjust(hspace=.6, wspace=.4)
@@ -55,17 +54,17 @@ def image_vector(image):
 
 
 axes[0, 0].imshow(test_image, cmap='Blues')
-axes[0, 1].hist(image_vector(test_image), bins=10)
+axes[0, 1].hist(image_vector(test_image), bins=20)
+axes[0, 2].imshow(filtered_cr_img, cmap='Reds')
 axes[1, 0].imshow(cropped_img, cmap='Greys')
 axes[1, 1].imshow(squared_cr_img, cmap='Greys')
 axes[1, 2].imshow(rescaled_sq_cr_img, cmap='Reds')
-axes[0, 2].imshow(filtered_cr_img, cmap='Reds')
 axes[0, 0].set_title('Original')
 axes[0, 1].set_title('Histogram')
+axes[0, 2].set_title('Blurred (final)')
 axes[1, 0].set_title('Cropped (int.)')
 axes[1, 1].set_title('Cropped & Squared (int.)')
 axes[1, 2].set_title('Cropped & Squared \n& Resized (final)')
-axes[0, 2].set_title('Blurred (final)')
 plt.show()
 
 # 2x3 plot

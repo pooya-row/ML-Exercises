@@ -5,6 +5,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
 import gzip
 import idx2numpy
+from skimage.transform import rescale
 
 
 # custom callback class for prediction metrics
@@ -263,3 +264,11 @@ def make_square(image):
                           np.zeros((int(delta_dim // 2 + 1), crop_shape[1]))]
 
     return image
+
+
+def crop_rescale(image):
+    no_margins = remove_image_margins(image)
+    squared = make_square(no_margins)
+    return rescale(squared,
+                   image.shape[0] / squared.shape[0],
+                   anti_aliasing=True)
