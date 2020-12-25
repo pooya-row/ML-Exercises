@@ -7,9 +7,13 @@ Neural Networks/01.MNIST Classification/01.CNN - Saved Model
 Neural Networks/01.MNIST Classification/02_IBS-Saved Model
 Titanic_Kaggle/00_data
 Enron Scandal/00_data
+housing/dataset
+housing/sklearn_exercise.py
 test.py
 KNN/mnist_train.csv
 Neural Networks/00.Tensorflow Exercises/layers_test.py
 Neural Networks/00.Tensorflow Exercises/MNIST_1.png
 Neural Networks/01.MNIST Classification/Metrics.py
 Neural Networks/01.MNIST Classification/test.py
+Neural Networks/01.MNIST Classification/experiement.py
+Neural Networks/01.MNIST Classification/grad.py

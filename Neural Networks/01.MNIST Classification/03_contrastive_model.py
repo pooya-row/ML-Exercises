@@ -18,7 +18,7 @@ files = [
 path = os.getcwd() + '\\00_MNIST_data\\'
 
 train_images, train_labels, test_images, test_labels = utils.MNIST_import(path, files)
-
+print(type(test_images))
 # reduce date
 train_images, train_labels = utils.reduce_date(train_images, train_labels, 5120)
 test_images, test_labels = utils.reduce_date(test_images, test_labels, 300)
@@ -35,7 +35,9 @@ scaled_train_images, scaled_val_images, train_labels, val_labels = \
 # cropped = np.zeros(scaled_train_images.shape)  # crop, square, rescale
 aug_images = np.zeros(tuple((scaled_train_images.shape[0] * 2,)) +
                       scaled_train_images.shape[1:])
-# print(cropped.shape)
+
+print(type(aug_images))
+
 for img in range(scaled_train_images.shape[0]):
     # blurred[img] = gaussian(scaled_train_images[img], sigma=1.15)
     # cropped[img] = utils.crop_rescale(scaled_train_images[img])
@@ -63,11 +65,11 @@ import tensorflow.keras.backend as kb
 def NT_Xent(y_actual, y_pred):
     custom_loss = kb.square(y_actual - y_pred)
     return custom_loss
-#
-#
-# # define encoder and head models
+
+
+# define encoder and head models
 # rep_model = tf.keras.models.Sequential()
-# rep_model.add(Flatten(input_shape=cropped[0].shape))
+# rep_model.add(Flatten(input_shape=aug_images[0].shape))
 # for n in range(3):
 #     rep_model.add(Dense(20, activation='relu'))
 #
@@ -79,7 +81,7 @@ def NT_Xent(y_actual, y_pred):
 # head_model.add(Dense(10, activation='softmax'))
 #
 # print(head_model.summary())
-#
+
 # # compile the encoder and ead models
 # rep_model.compile(optimizer='SGD',
 #                   loss='',
