@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import tarfile
-from sklearn.model_selection import cross_val_score, StratifiedShuffleSplit, GridSearchCV
+from sklearn.model_selection import cross_val_score, StratifiedShuffleSplit, GridSearchCV, RandomizedSearchCV
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -14,6 +14,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from pprint import pprint
 from scipy import stats
+from scipy.stats import reciprocal, expon
 
 
 class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
@@ -101,24 +102,37 @@ sv_reg = SVR()
 # display_scores(sv_reg, housing_prepared, tr_label)
 
 # fine-tuning the model (grid search)
-svr_params = [
-    {'kernel': ['linear'], 'C': [1000., 250.]},
-    # {'kernel': ['linear', 'rbf'], 'C': [10., 250.], 'gamma': ['auto', 'scale']}
-]
+# svr_params = [
+#     {'kernel': ['linear'], 'C': [1000., 250.]},
+#     # {'kernel': ['linear', 'rbf'], 'C': [10., 250.], 'gamma': ['auto', 'scale']}
+# ]
 # define grid search
-grid_search = GridSearchCV(sv_reg, svr_params,
-                           scoring='neg_mean_squared_error',
-                           return_train_score=True)
-# run grid search
-grid_search.fit(housing_prepared, tr_label)
+# grid_search = GridSearchCV(sv_reg, svr_params,
+#                            scoring='neg_mean_squared_error',
+#                            return_train_score=True)
+
+# define distribution of parameters
+params_dist = [
+    {'kernel': ['linear', 'rbf']},
+    {'C': reciprocal(20, 200000)},
+    {'gamma': expon(scale=1.0)}
+]
+
+# define randomized search
+rand_search = RandomizedSearchCV(sv_reg, params_dist,
+                                 n_iter=10, cv=5,
+                                 scoring='neg_mean_squared_error')
+
+# run grid/rand search
+rand_search.fit(housing_prepared, tr_label)
 
 # report the result of grid search
-print(grid_search.best_params_)
-print(f'\n{grid_search.best_score_}')
-print(f'\n{grid_search.best_estimator_}\n')
+print(rand_search.best_params_)
+print(f'\n{rand_search.best_score_}')
+print(f'\n{rand_search.best_estimator_}\n')
 
-# report the scores of each estimator in the grid search
-cv_result = grid_search.cv_results_
+# report the scores of each estimator in the grid/rand search
+cv_result = rand_search.cv_results_
 pprint(cv_result.keys())
 
 for sc, par, mft, sft, mst, sst in zip(cv_result['mean_test_score'],
@@ -141,7 +155,7 @@ for sc, par, mft, sft, mst, sst in zip(cv_result['mean_test_score'],
 # pprint(sorted(zip(feature_importance, features), reverse=True))
 
 # pick the best model
-final_model = grid_search.best_estimator_
+final_model = rand_search.best_estimator_
 
 # evaluate on test set
 X_test = strat_test_set.drop('median_house_value', axis=1)
