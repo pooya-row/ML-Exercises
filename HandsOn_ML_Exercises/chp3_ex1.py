@@ -1,23 +1,24 @@
-import gzip
+from pathlib import Path
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+import numpy as np
 import idx2numpy
 from pprint import pprint
-import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+import gzip
 
+from HandsOn_ML_Exercises.utils import scale_data, reduce_date
 
-# import data
-files = ['train-images-idx3-ubyte.gz',
-         'train-labels-idx1-ubyte.gz',
-         't10k-images-idx3-ubyte.gz',
-         't10k-labels-idx1-ubyte.gz']
+IMPORTED_DATA_FILES = ['train-images-idx3-ubyte.gz',
+                       'train-labels-idx1-ubyte.gz',
+                       't10k-images-idx3-ubyte.gz',
+                       't10k-labels-idx1-ubyte.gz']
 
-path = 'C:\\Users\\Pooya\\Documents\\Machine Learning\\ML-Exercise\\' \
-       'Neural Networks\\01.MNIST Classification\\00_MNIST_data\\'
+DATA_PATH = Path.cwd().parent  / "Neural Networks" / "01.MNIST Classification" / "00_MNIST_data"
 
 data = []
-for file in files:
-    with gzip.open(path + file, 'r') as f:
+for file in IMPORTED_DATA_FILES:
+    with gzip.open(DATA_PATH / file, 'r') as f:
         data.append(idx2numpy.convert_from_file(f))
 
 train_images = data.pop(0)
@@ -25,31 +26,8 @@ train_labels = data.pop(0)
 test_images = data.pop(0)
 test_labels = data.pop(0)
 
-
-# normalizer function
-def scale_data(x):
-    return x / 255.
-
-
-def reduce_date(x, y, n=5120):
-    ix = np.random.randint(0, x.shape[0], n)
-    return x[ix], y[ix]
-
-
-# # reduce training date
 (train_images, train_labels) = reduce_date(train_images, train_labels, 10000)
-# # reduce testing date
 (test_images, test_labels) = reduce_date(test_images, test_labels, 1000)
-
-# class normalizer(BaseEstimator, TransformerMixin):
-#     # def __init__(self):
-#
-#     def fit(self, X, y=None):
-#         return self
-#
-#     def transform(self, X):
-#         X_norm = X / 255
-
 
 # normalize data
 train_images = scale_data(train_images)
